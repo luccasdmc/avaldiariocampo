@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#1743c4">
+<meta name="description" content="Formulário para avaliar o Diário de Campo Individual (Intervenção) com rubrica de 8 seções, nota total de 10,00 pontos e nota final de 4,00. Funciona no navegador, sem cadastro, e guarda os dados somente no aparelho.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:title" content="Avaliação do Diário de Campo Individual (Intervenção)">
+<meta property="og:description" content="Rubrica interativa com nota automática, observações por subitem e exportação em PDF e CSV.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231743c4'/%3E%3Cpath d='M18 33l9 9 19-21' fill='none' stroke='white' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<title>Avaliação do Diário de Campo Individual (Intervenção)</title>
+<style>
+:root{
+  --bg:#f3f5f8; --surface:#ffffff; --text:#111722; --muted:#465162; --line:#c4ccd8;
+  --accent:#1743c4; --accent-ink:#ffffff; --accent-soft:#e3ebff; --focus:#e08a00;
+  --ok:#14683a; --warn-bg:#fff1d6; --warn-line:#b26b00; --warn-ink:#4a2c00;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#0d1218; --surface:#171d26; --text:#f3f6fa; --muted:#b7c2d1; --line:#3b4657;
+    --accent:#86a8ff; --accent-ink:#0a1020; --accent-soft:#1c2a4e; --focus:#ffb534;
+    --ok:#5fd18b; --warn-bg:#3a2a08; --warn-line:#e0a03a; --warn-ink:#ffe2b0;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:17px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+h1,h2,h3{line-height:1.25;margin:0}
+h1{font-size:1.45rem}
+
+.lv-exc{--lv:#14683a}.lv-otimo{--lv:#3f7a14}.lv-muito{--lv:#6b7410}.lv-bom{--lv:#946200}.lv-reg{--lv:#b4500b}.lv-insuf{--lv:#c1351f}.lv-ausente{--lv:#8f1239}
+
+/* Barra superior */
+.topbar{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line);padding:calc(8px + env(safe-area-inset-top)) 12px 0}
+.topbar-row{display:flex;align-items:center;gap:12px;max-width:860px;margin:0 auto;padding-bottom:6px}
+.menu-btn{display:inline-flex;align-items:center;gap:6px;min-height:46px;padding:0 10px;border:2px solid var(--line);border-radius:12px;background:var(--surface);font-weight:600;font-size:.9rem;white-space:nowrap}
+.menu-btn svg{width:20px;height:20px;flex:none}
+.stats{margin-left:auto;display:flex;gap:10px;text-align:right;white-space:nowrap}
+.stat .lbl{display:block;font-size:.66rem;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);line-height:1.1}
+.stat strong{font-size:1.12rem;font-variant-numeric:tabular-nums}
+.stat small{font-size:.74rem;color:var(--muted)}
+.bar{height:6px;background:var(--line);margin:0 -12px}
+.bar>i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+
+main{max-width:860px;margin:0 auto;padding:16px 12px 120px}
+main.sec{padding-bottom:max(120px,calc(100vh - 200px))}
+
+/* Seções */
+.stepper{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:0 0 10px}
+@media (min-width:640px){.stepper{grid-template-columns:repeat(10,1fr)}}
+.step{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:54px;padding:4px 2px;border:2px solid var(--line);border-radius:10px;background:var(--surface);line-height:1.15}
+.step b{font-size:1.1rem}
+.step.txt b{font-size:.8rem}
+.step small{font-size:.7rem;color:var(--muted);min-height:.9rem}
+.step[aria-current="step"]{border-color:var(--accent);background:var(--accent-soft)}
+.step.done{border-color:var(--ok)}
+.step.done small{color:var(--ok);font-weight:700}
+.status{margin:0 0 14px;font-size:.88rem;color:var(--muted)}
+.status.warn{color:var(--warn-ink);background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:10px;padding:8px 10px}
+
+.sechead{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px;margin:6px 0 6px}
+.sechead h2{font-size:1.45rem}
+.secmeta{font-size:.95rem;color:var(--muted)}
+.secmeta strong{color:var(--text);font-size:1.15rem;font-variant-numeric:tabular-nums}
+.hint{margin:0 0 14px;font-size:.92rem;color:var(--muted)}
+
+/* Cartões de critério */
+.card{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--line);border-radius:14px;padding:14px;margin:0 0 14px;scroll-margin-top:90px}
+.card.rated{border-left-color:var(--lv)}
+.card.flash{animation:flash 1.6s ease-out}
+@keyframes flash{0%{box-shadow:0 0 0 4px var(--focus)}100%{box-shadow:0 0 0 0 transparent}}
+.card-top{display:flex;gap:10px;align-items:flex-start}
+.code{flex:none;display:inline-flex;justify-content:center;min-width:2.8rem;padding:2px 8px;border-radius:8px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-variant-numeric:tabular-nums}
+.crit{margin:0;font-size:1.03rem}
+.ctitle{margin:0;font-weight:700}
+.cdesc{margin:4px 0 0;font-size:.95rem;color:var(--muted)}
+.card-val{margin:8px 0 0;font-size:.88rem;color:var(--muted)}
+.opts{display:grid;grid-template-columns:repeat(12,1fr);gap:8px;margin-top:12px}
+.opt{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:54px;padding:6px 2px;border:2px solid var(--line);border-top:6px solid var(--lv);border-radius:10px;background:var(--surface);font-weight:600;font-size:.8rem;line-height:1.2;text-align:center}
+.opt-pct{font-size:.76rem;font-weight:500;color:var(--muted)}
+.opt{grid-column:span 3;overflow-wrap:anywhere}
+.opt:nth-child(n+5){grid-column:span 4}
+.opt[aria-checked="true"]{background:var(--lv);border-color:var(--lv);color:#fff}
+.opt[aria-checked="true"] .opt-pct{color:#fff;font-weight:700}
+.opt[aria-checked="true"] .opt-pct::before{content:"\2713\00a0"}
+.card-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px}
+.pts{font-size:.95rem;color:var(--muted)}
+.pts b{color:var(--text);font-size:1.05rem}
+.obs-toggle{min-height:44px;padding:0 14px;border:2px solid var(--line);border-radius:10px;background:var(--surface);font-weight:600;font-size:.92rem}
+.obs{scroll-margin-bottom:110px}
+.reset-row{margin:8px 0 0}
+.reset-row .btn{width:100%}
+.card.current{outline:3px solid var(--accent);outline-offset:2px}
+.obs{margin-top:10px}
+.obs label{display:block;font-size:.85rem;font-weight:600;color:var(--muted);margin-bottom:4px}
+textarea,input[type=text],input[type=date]{width:100%;padding:10px 12px;border:2px solid var(--line);border-radius:10px;background:var(--surface);color:var(--text)}
+textarea{min-height:88px;resize:vertical}
+
+/* Dados */
+.lead{margin:6px 0 16px;color:var(--muted)}
+.field{margin:0 0 14px}
+.field label{display:block;font-weight:600;margin-bottom:4px}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:6px 0 14px}
+.note p{margin:0 0 8px}
+.scale{display:flex;flex-wrap:wrap;gap:6px;margin:0;padding:0;list-style:none}
+.scale li,.chip{display:inline-block;padding:2px 10px;border-radius:999px;background:var(--lv);color:#fff;font-size:.85rem;font-weight:600}
+
+/* Navegação inferior */
+.bottomnav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+.bottomnav .inner{display:flex;gap:10px;max-width:860px;margin:0 auto}
+.btn{min-height:52px;padding:0 16px;border:2px solid var(--accent);border-radius:12px;background:var(--surface);color:var(--text);font-weight:700}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.bottomnav .btn{flex:1}
+.bottomnav .btn.primary{flex:1.7}
+
+/* Resumo */
+.finals{display:grid;grid-template-columns:1fr;gap:10px;margin:10px 0 14px}
+@media (min-width:620px){.finals{grid-template-columns:1fr 1fr}}
+.final-box{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;background:var(--surface);border:2px solid var(--accent);border-radius:14px;padding:14px;margin:0}
+.final-box .big{font-size:2.4rem;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.final-box .of{color:var(--muted)}
+.ident{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:10px 0 0}
+.ident dt{font-weight:700}
+.ident dd{margin:0;overflow-wrap:anywhere}
+table.sum{width:100%;border-collapse:collapse;margin:0 0 18px;background:var(--surface)}
+table.sum th,table.sum td{padding:8px 10px;border:1px solid var(--line);text-align:left}
+table.sum td.n,table.sum th.n{text-align:right;font-variant-numeric:tabular-nums}
+table.sum tfoot td{font-weight:800}
+.rsec{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;margin:20px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--text)}
+.rsec h3{font-size:1.1rem}
+.crow{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:0 0 8px;break-inside:avoid}
+.crow .ct{margin:0 0 6px}
+.crow .ct b{margin-right:6px}
+.crow .cres{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.crow .cobs{margin:6px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.chip.none{background:#5d6675}
+.jump{border:0;background:none;padding:0;color:var(--accent);font-weight:700;text-decoration:underline}
+.nojs-note{background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink);border-radius:12px;padding:14px 16px;margin:8px 0 14px;line-height:1.5}
+.nojs-note h2{margin:0 0 8px;font-size:1.15rem}
+.nojs-note p{margin:0 0 8px}
+.nojs-note p:last-child{margin-bottom:0}
+.missing{background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-ink);border-radius:12px;padding:10px 12px;margin:0 0 14px}
+.actions{display:grid;grid-template-columns:1fr;gap:10px;margin:20px 0 0}
+@media (min-width:560px){.actions{grid-template-columns:1fr 1fr}}
+.actions .wide{grid-column:1/-1}
+
+/* Painel de avaliações salvas */
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(5,10,20,.55);display:flex;justify-content:center}
+.panel{width:100%;max-width:680px;height:100%;overflow:auto;background:var(--bg);padding:calc(14px + env(safe-area-inset-top)) 14px calc(20px + env(safe-area-inset-bottom))}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.panel-head h2{font-size:1.35rem}
+.saved{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;margin:0 0 10px}
+.saved.current{border:2px solid var(--accent)}
+.saved h3{font-size:1.05rem;overflow-wrap:anywhere}
+.saved p{margin:2px 0 8px;color:var(--muted);font-size:.92rem;overflow-wrap:anywhere}
+.saved .row{display:flex;gap:8px}
+.saved .row .btn{flex:1;min-height:46px}
+.btn.danger{border-color:#b91c1c;color:#b91c1c}
+@media (prefers-color-scheme:dark){.btn.danger{border-color:#ff8a8a;color:#ff8a8a}}
+.panel-tools{display:grid;gap:8px;margin-top:16px}
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:60;max-width:90vw;background:#111722;color:#fff;padding:10px 16px;border-radius:12px;font-size:.95rem;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+
+@media (max-width:399px){.opt{font-size:.74rem;padding:6px 1px}.stat strong{font-size:1rem}.stat small{font-size:.66rem}.stats{gap:8px}}
+@media (max-width:379px){.menu-btn span{display:none}.menu-btn{padding:0 12px}#topSecMax{display:none}}
+@media (min-width:400px){.opt{font-size:.82rem}}
+@media (min-width:520px){.opt{font-size:.92rem}}
+@media (min-width:760px){
+  .opts{grid-template-columns:repeat(7,1fr)}
+  .opt,.opt:nth-child(n+5){grid-column:auto}
+  .opt{font-size:.95rem}
+}
+@media (max-width:349px){
+  .menu-btn span{display:none}
+  .menu-btn{padding:0 12px}
+  .bottomnav .btn{font-size:.92rem;padding:0 8px}
+}
+@media (max-width:299px){
+  .opts{grid-template-columns:repeat(2,1fr)}
+  .opt,.opt:nth-child(n+5){grid-column:auto}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Impressão e PDF */
+@media print{
+  :root{--bg:#fff;--surface:#fff;--text:#000;--muted:#222;--line:#8a8a8a;--accent:#000;--accent-ink:#fff}
+  @page{size:A4;margin:14mm}
+  html,body{background:#fff}
+  body{font-size:11pt;line-height:1.4}
+  .topbar,.bottomnav,.no-print,.overlay,.toast{display:none!important}
+  main{max-width:none;padding:0}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .final-box{border:2px solid #000}
+  .crow,.rsec,table.sum tr{break-inside:avoid}
+  .rsec{break-after:avoid}
+}
+</style>
+</head>
+<body>
+
+<header class="topbar" id="topbar">
+  <div class="topbar-row">
+    <button type="button" class="menu-btn" id="btnMenu" aria-haspopup="dialog" aria-label="Avaliações salvas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+      <span>Avaliações</span>
+    </button>
+    <div class="stats">
+      <div class="stat" id="secStat" hidden><span class="lbl">Seção</span><strong id="topSec">0,00</strong> <small id="topSecMax"></small></div>
+      <div class="stat"><span class="lbl">Nota total</span><strong id="topFinal">0,00</strong> <small>/ 10,00</small></div>
+      <div class="stat"><span class="lbl">Nota final</span><strong id="topFinal4">0,00</strong> <small>/ 4,00</small></div>
+    </div>
+  </div>
+  <div class="bar" role="progressbar" aria-label="Subitens avaliados" aria-valuemin="0" aria-valuemax="14" id="progBar"><i id="progFill"></i></div>
+</header>
+
+<main id="main" tabindex="-1">
+  <div class="nojs-note" role="status">
+    <h2>Este formulário precisa de JavaScript para funcionar</h2>
+    <p>Esta mensagem aparece quando o JavaScript está desativado no navegador ou quando a página é aberta numa pré-visualização, como a de um anexo de e-mail ou a do aplicativo Arquivos.</p>
+    <p><strong>No iPhone e no iPad:</strong> abra o endereço do formulário diretamente no Safari.</p>
+    <p><strong>Em outros aparelhos:</strong> use um navegador comum, como Chrome, Edge, Firefox ou Safari, com o JavaScript ativado.</p>
+  </div>
+</main>
+
+<footer class="bottomnav" id="bottomnav">
+  <div class="inner">
+    <button type="button" class="btn" id="btnPrev">Anterior</button>
+    <button type="button" class="btn primary" id="btnNext">Próxima</button>
+  </div>
+</footer>
+
+<div class="overlay" id="overlay" hidden role="dialog" aria-modal="true" aria-labelledby="panelTitle">
+  <div class="panel" id="panel"></div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<input type="file" id="fileIn" accept=".json,application/json" hidden>
+
+
+<script>
+(function(){
+'use strict';
+
+var KEY='diarioCampoIntervencao.v1';
+var APP='diario-campo-intervencao';
+var TITLE='Avaliação do Diário de Campo Individual (Intervenção)';
+var LEVELS=[
+  {k:'exc',label:'Excelente',pct:100},
+  {k:'otimo',label:'Ótimo',pct:85},
+  {k:'muito',label:'Muito Bom',pct:70},
+  {k:'bom',label:'Bom',pct:60},
+  {k:'reg',label:'Regular',pct:40},
+  {k:'insuf',label:'Insuficiente',pct:20},
+  {k:'ausente',label:'Ausente',pct:0}
+];
+var LV={}; LEVELS.forEach(function(l){LV[l.k]=l;});
+
+/* Valores em centésimos de ponto: 20 = 0,20. Pontos do subitem = valor x percentual (em 1/10000 de ponto), soma exata, arredonda só na exibição. */
+var SECTIONS=[
+ {n:1,title:"Identificação e formatação",items:[
+  ["1.1",20,"Dados de identificação completos","Nome do(a) aluno(a), disciplina, local da intervenção, professor(a), data e horários de início e término preenchidos corretamente e por extenso, conforme o modelo institucional."],
+  ["1.2",30,"Formatação e estrutura conforme o modelo","Todas as seções do modelo presentes e na ordem correta (Descrição das Atividades, Objetivos, Impressões, Principais Aprendizados, Desafios, Registro Fotográfico); ausência de instruções do modelo remanescentes no texto entregue."]
+ ]},
+ {n:2,title:"Descrição das atividades realizadas",items:[
+  ["2.1",70,"Contextualização do local, do público e da atividade","Abertura com descrição geral do ambiente (mobiliário relevante, acessibilidade, tamanho, ventilação, iluminação), do público presente e da atividade principal realizada no dia."],
+  ["2.2",130,"Registro sequencial e detalhado dos momentos da intervenção","Cada momento/tema da intervenção apresentado em sequência, com registro das ações, interações, reações, expressões faciais, posturas e verbalizações relevantes do grupo, do público e dos colegas; detalhamento suficiente para reconstituir a cena."],
+  ["2.3",100,"Registro descritivo e impessoal","Texto estritamente descritivo, sem uso da 1ª pessoa (eu/nós) e sem comentários pessoais, sentimentos ou impressões nesta seção (reservados à seção seguinte)."]
+ ]},
+ {n:3,title:"Objetivos",items:[
+  ["3.1",40,"Clareza dos objetivos da intervenção","Objetivos da intervenção (conforme projeto) retomados de forma clara e correta."],
+  ["3.2",60,"Avaliação do grau de alcance","Indicação de que os objetivos foram atingidos total, parcial ou insatisfatoriamente, explicando como; inclui resumo da avaliação do público como evidência do cumprimento dos objetivos."]
+ ]},
+ {n:4,title:"Impressões diante dos fenômenos observados",items:[
+  ["4.1",100,"Reflexões pessoais abrangentes","Impressões, reflexões, sensações e sentimentos durante toda a atividade, incluindo avaliação da qualidade do ambiente físico e abrangendo o público-alvo, os colegas e o próprio aluno; conteúdo específico e concreto, não genérico."],
+  ["4.2",100,"Voz e perspectiva individual do relato","As percepções e reações relatadas são nitidamente próprias do(a) aluno(a); o relato não repete, de forma idêntica ou quase idêntica, impressões compartilhadas por colegas que participaram da mesma intervenção."]
+ ]},
+ {n:5,title:"Principais aprendizados",items:[
+  ["5.1",100,"Aprendizados específicos e concretos","O que foi possível conhecer/compreender melhor sobre o local, seu funcionamento, seus profissionais e o público-alvo; inclui habilidades acadêmicas/profissionais desenvolvidas. Sem afirmações genéricas ou clichês."]
+ ]},
+ {n:6,title:"Desafios encontrados",items:[
+  ["6.1",100,"Desafios descritos com estratégias de superação","Desafios e dificuldades concretas (chegada, ambiente, comunicação, imprevistos, reações do público, sentimentos/pensamentos que atrapalharam etc.) descritos junto com a forma como foram solucionados; dificuldades não resolvidas também mencionadas, com justificativa."]
+ ]},
+ {n:7,title:"Registro fotográfico",items:[
+  ["7.1",50,"Fotos relevantes, legendadas e completas","De 2 a 3 fotos relevantes do dia da intervenção, cada uma com legenda; pelo menos uma foto com o(a) aluno(a) e outra com o público, conforme exigido no modelo."]
+ ]},
+ {n:8,title:"Qualidade da escrita e autoria individual",items:[
+  ["8.1",50,"Clareza, coesão e adequação da linguagem","Texto claro e objetivo, com transições lógicas entre parágrafos e seções; linguagem acadêmica formal, sem coloquialismos ou formatação excessiva/inadequada."],
+  ["8.2",50,"Autenticidade e autoria individual do relato","O texto reflete a perspectiva e a voz própria do(a) autor(a); ausência de trechos idênticos ou quase idênticos a diários de colegas da mesma intervenção e de indícios de conteúdo gerado sem envolvimento genuíno do(a) aluno(a) (ex.: texto de IA dissociado da experiência concreta relatada)."]
+ ]}
+];
+var ALL=[], BYID={};
+SECTIONS.forEach(function(s){
+  s.items=s.items.map(function(a){return {id:a[0],v:a[1],title:a[2],desc:a[3],sec:s.n};});
+  s.max=s.items.reduce(function(t,i){return t+i.v;},0);
+  s.items.forEach(function(i){ALL.push(i);BYID[i.id]=i;});
+});
+var TOTAL=ALL.length;
+var MAXPTS=SECTIONS.reduce(function(t,s){return t+s.max;},0);
+var ORDER=['dados'].concat(SECTIONS.map(function(x){return x.n;}),['resumo']);
+
+/* Utilidades */
+function $(s,r){return (r||document).querySelector(s);}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function fmt(h){return (h/100).toFixed(2).replace('.',',');}
+function p2(n){return (n<10?'0':'')+n;}
+function todayISO(){var d=new Date();return d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());}
+function brDate(iso){var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(iso||'');return m?m[3]+'/'+m[2]+'/'+m[1]:'';}
+function pts(it,r){return it.v*LV[r].pct;}
+function fp(n){return fmt(Math.floor((n+50)/100));}
+function f4(n){return fmt(Math.floor((n+500)/1000));}
+function slug(s){return String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Za-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40);}
+function baseName(ev){return 'Diario-de-Campo'+(ev.aluno?'_'+slug(ev.aluno):'')+(ev.disciplina?'_'+slug(ev.disciplina):'')+'_'+(ev.data||todayISO());}
+
+/* Armazenamento local */
+var store={current:null,items:{}};
+var storageOk=true, savedAt=null, saveTimer=null;
+function normEval(ev){
+  if(!ev.ratings||typeof ev.ratings!=='object'){ev.ratings={};}
+  if(!ev.obs||typeof ev.obs!=='object'){ev.obs={};}
+  if(!ev.done||typeof ev.done!=='object'){
+    ev.done={};
+    Object.keys(ev.ratings).forEach(function(k){ev.done[k]=true;});
+  }
+  if(!ev.opened||typeof ev.opened!=='object'){ev.opened={};}
+  if(typeof ev.active!=='string'||!BYID[ev.active]){ev.active=null;}
+  if(ev.step!=='obs'&&ev.step!=='next'){ev.step=null;}
+  return ev;
+}
+function loadStore(){
+  try{
+    localStorage.setItem('__t','1');localStorage.removeItem('__t');
+    var raw=localStorage.getItem(KEY);
+    if(raw){
+      var p=JSON.parse(raw);
+      if(p&&p.items&&typeof p.items==='object'){
+        store=p;
+        Object.keys(store.items).forEach(function(k){normEval(store.items[k]);});
+      }
+    }
+  }catch(e){storageOk=false;}
+}
+function saveNow(){
+  clearTimeout(saveTimer);
+  try{localStorage.setItem(KEY,JSON.stringify(store));storageOk=true;savedAt=new Date();}
+  catch(e){storageOk=false;}
+  refreshStatus();
+}
+function queueSave(touch){
+  var ev=cur();
+  if(touch&&ev){ev.updated=Date.now();}
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(saveNow,250);
+}
+function cur(){return store.items[store.current];}
+function newEval(from){
+  var id='a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  var ev={id:id,disciplina:from?from.disciplina:'',professor:from?from.professor:'',aluno:'',data:todayISO(),ratings:{},obs:{},done:{},opened:{},active:null,step:null,view:'dados',created:Date.now(),updated:Date.now()};
+  store.items[id]=ev;store.current=id;return ev;
+}
+function isBlank(ev){return !ev.aluno&&!Object.keys(ev.ratings).length&&!Object.keys(ev.obs).length;}
+
+/* Cálculo */
+function calc(ev){
+  var secs=SECTIONS.map(function(s){
+    var got=0,n=0;
+    s.items.forEach(function(it){var r=ev.ratings[it.id];if(r&&LV[r]){n++;got+=pts(it,r);}});
+    return {got:got,n:n,total:s.items.length,max:s.max};
+  });
+  var got=0,n=0;
+  secs.forEach(function(s){got+=s.got;n+=s.n;});
+  /* got em 1/10000 de ponto (escala de 10); got4 em 1/100000 (escala de 4: nota total x 4 / 10) */
+  return {secs:secs,got:got,got4:got*4,n:n,total:TOTAL,max:MAXPTS,max4:400};
+}
+
+/* Modelos de tela */
+function stepperShell(){
+  return '<nav class="stepper no-print" id="stepper" aria-label="Seções do formulário"></nav><p class="status no-print" id="statusLine"></p>';
+}
+function tplDados(ev){
+  var scale=LEVELS.map(function(l){return '<li class="lv-'+l.k+'">'+l.label+' '+l.pct+'%</li>';}).join('');
+  return stepperShell()+
+  '<h1 tabindex="-1" id="viewTitle">'+TITLE+'</h1>'+
+  '<p class="lead">Identifique esta avaliação. Cada alteração fica salva neste aparelho.</p>'+
+  '<div class="field"><label for="f-disciplina">Disciplina</label><input type="text" id="f-disciplina" data-f="disciplina" autocomplete="off" placeholder="Nome da disciplina" value="'+esc(ev.disciplina)+'"></div>'+
+  '<div class="field"><label for="f-aluno">Aluno(a)</label><input type="text" id="f-aluno" data-f="aluno" autocomplete="off" placeholder="Nome do(a) aluno(a)" value="'+esc(ev.aluno)+'"></div>'+
+  '<div class="field"><label for="f-professor">Professor(a)</label><input type="text" id="f-professor" data-f="professor" autocomplete="off" placeholder="Nome do(a) professor(a)" value="'+esc(ev.professor)+'"></div>'+
+  '<div class="field"><label for="f-data">Data da avaliação</label><input type="date" id="f-data" data-f="data" value="'+esc(ev.data)+'"></div>'+
+  '<div class="note"><p>Professor(a), toque na opção correspondente à sua avaliação de cada subitem e acrescente observações quando julgar pertinente. Toque de novo na opção marcada para desmarcá-la.</p>'+
+  '<p>O instrumento tem '+SECTIONS.length+' seções e '+TOTAL+' subitens, com nota total de '+fmt(MAXPTS)+' pontos. A nota final do Diário de Campo é a nota total multiplicada por 4 e dividida por 10, com máximo de 4,00.</p>'+
+  '<p>Cada opção vale uma parte do valor do subitem:</p><ul class="scale">'+scale+'</ul>'+
+  '<p style="margin-top:10px">As avaliações ficam guardadas somente neste navegador. Nenhuma informação é enviada pela internet.</p></div>'+
+  '<div class="reset-row"><button type="button" class="btn danger" data-act="reset">Reiniciar esta avaliação</button><p class="hint">Apaga as notas e as observações deste(a) aluno(a) e mantém disciplina, aluno(a), professor(a) e data.</p></div>';
+}
+function tplSecao(n,ev){
+  var s=SECTIONS[n-1];
+  var cards=s.items.map(function(it,ix){
+    var opts=LEVELS.map(function(l){
+      return '<button type="button" class="opt lv-'+l.k+'" role="radio" aria-checked="false" data-lv="'+l.k+'"><span class="opt-name">'+l.label+'</span><span class="opt-pct">'+l.pct+'%</span></button>';
+    }).join('');
+    return '<article class="card" data-id="'+it.id+'">'+
+      '<div class="card-top"><span class="code">'+it.id+'</span><div class="crit"><p class="ctitle">'+esc(it.title)+'</p><p class="cdesc">'+esc(it.desc)+'</p></div></div>'+
+      '<p class="card-val">Valor do subitem: '+fmt(it.v)+'</p>'+
+      '<div class="opts" role="radiogroup" aria-label="Avaliação do subitem '+it.id+'">'+opts+'</div>'+
+      '<div class="card-foot"><span class="pts"></span><button type="button" class="obs-toggle" hidden>+ Observação</button></div>'+
+      '<div class="obs" hidden><label for="obs-'+it.id+'">Observações do(a) professor(a)</label><textarea id="obs-'+it.id+'" data-obs="'+it.id+'" rows="3">'+esc(ev.obs[it.id]||'')+'</textarea></div>'+
+    '</article>';
+  }).join('');
+  return stepperShell()+
+  '<div class="sechead"><h2 tabindex="-1" id="viewTitle">'+n+'. '+esc(s.title)+'</h2>'+
+  '<div class="secmeta">Nota da seção <strong id="secScore">0,00</strong> de '+fmt(s.max)+'</div></div>'+
+  '<p class="hint">Toque em uma opção para avaliar o subitem. Toque de novo para desmarcar.</p>'+cards;
+}
+function chipFor(r){
+  if(!r)return '<span class="chip none">Sem avaliação</span>';
+  return '<span class="chip lv-'+r+'">'+LV[r].label+' ('+LV[r].pct+'%)</span>';
+}
+function tplResumo(ev){
+  var c=calc(ev);
+  var missing=ALL.filter(function(i){return !ev.ratings[i.id];});
+  var warn='';
+  if(missing.length){
+    warn='<div class="missing no-print"><b>'+missing.length+' '+(missing.length===1?'subitem sem avaliação':'subitens sem avaliação')+'.</b> Subitens sem avaliação valem zero na nota. Toque para ir ao subitem: '+
+      missing.map(function(i){return '<button type="button" class="jump" data-jump="'+i.id+'">'+i.id+'</button>';}).join(' ')+'</div>';
+  }
+  var rows=SECTIONS.map(function(s,ix){
+    return '<tr><td>'+s.n+'. '+esc(s.title)+'</td><td class="n">'+fp(c.secs[ix].got)+'</td><td class="n">'+fmt(s.max)+'</td></tr>';
+  }).join('');
+  var detail=SECTIONS.map(function(s,ix){
+    var items=s.items.map(function(it){
+      var r=ev.ratings[it.id];
+      var o=ev.obs[it.id];
+      return '<div class="crow"><p class="ct"><b>'+it.id+'</b><b>'+esc(it.title)+'</b></p><p class="cdesc">'+esc(it.desc)+'</p>'+
+        '<div class="cres">'+chipFor(r)+'<span>'+(r?'<b>'+fp(pts(it,r))+'</b> de '+fmt(it.v):'0,00 de '+fmt(it.v))+'</span></div>'+
+        (o?'<p class="cobs"><b>Observação:</b> '+esc(o)+'</p>':'')+'</div>';
+    }).join('');
+    return '<div class="rsec"><h3>'+s.n+'. '+esc(s.title)+'</h3><span>Nota '+fp(c.secs[ix].got)+' de '+fmt(s.max)+'</span></div>'+items;
+  }).join('');
+  return stepperShell()+
+  '<section id="report">'+
+  '<h1 tabindex="-1" id="viewTitle">'+TITLE+'</h1>'+
+  '<dl class="ident"><dt>Disciplina</dt><dd>'+(esc(ev.disciplina)||'(não informada)')+'</dd><dt>Aluno(a)</dt><dd>'+(esc(ev.aluno)||'(não informado)')+'</dd><dt>Professor(a)</dt><dd>'+(esc(ev.professor)||'(não informado)')+'</dd><dt>Data</dt><dd>'+(brDate(ev.data)||'(não informada)')+'</dd></dl>'+
+  '<div class="finals">'+
+    '<div class="final-box"><span>Nota total</span><span class="big">'+fp(c.got)+'</span><span class="of">de 10,00 ('+c.n+' de '+c.total+' subitens avaliados)</span></div>'+
+    '<div class="final-box"><span>Nota final</span><span class="big">'+f4(c.got4)+'</span><span class="of">de 4,00 (nota total × 4 ÷ 10)</span></div>'+
+  '</div>'+
+  warn+
+  '<table class="sum"><thead><tr><th>Seção</th><th class="n">Nota</th><th class="n">Valor</th></tr></thead><tbody>'+rows+'</tbody><tfoot><tr><td>Nota total</td><td class="n">'+fp(c.got)+'</td><td class="n">'+fmt(c.max)+'</td></tr><tr><td>Nota final (nota total × 4 ÷ 10)</td><td class="n">'+f4(c.got4)+'</td><td class="n">4,00</td></tr></tfoot></table>'+
+  detail+'</section>'+
+  '<div class="actions no-print">'+
+    '<button type="button" class="btn primary" data-act="pdf">Baixar PDF</button>'+
+    (canShareFiles()?'<button type="button" class="btn" data-act="share">Compartilhar ou salvar PDF</button>':'')+
+    '<button type="button" class="btn" data-act="openpdf">Abrir PDF em nova aba</button>'+
+    '<button type="button" class="btn" data-act="csv">Baixar planilha (CSV)</button>'+
+    '<button type="button" class="btn" data-act="json">Baixar arquivo de dados (.json)</button>'+
+    '<button type="button" class="btn wide" data-act="new">Avaliar outro(a) aluno(a)</button>'+
+  '</div>';
+}
+
+/* Atualização de partes da tela */
+var editing={};
+function itemDone(ev,id){return !!(ev.ratings[id]&&ev.done[id]);}
+function sectionDone(ev,n){return SECTIONS[n-1].items.every(function(it){return itemDone(ev,it.id);});}
+function isLast(id){var s=SECTIONS[BYID[id].sec-1];return s.items[s.items.length-1].id===id;}
+function obsOpen(ev,id){return !!(ev.obs[id]&&ev.obs[id].trim())||(!!ev.opened[id]&&!ev.done[id])||!!editing[id];}
+function updateCard(card,ev){
+  var id=card.getAttribute('data-id'),r=ev.ratings[id],it=BYID[id];
+  LEVELS.forEach(function(l){card.classList.remove('lv-'+l.k);});
+  card.classList.toggle('rated',!!r);
+  if(r){card.classList.add('lv-'+r);}
+  $$('.opt',card).forEach(function(b){b.setAttribute('aria-checked',b.getAttribute('data-lv')===r?'true':'false');});
+  $('.pts',card).innerHTML=r?'<b>'+fp(pts(it,r))+'</b> de '+fmt(it.v):'Sem avaliação';
+  var open=obsOpen(ev,id);
+  $('.obs',card).hidden=!open;
+  $('.obs-toggle',card).hidden=!r||open;
+  if(open){growTA($('textarea',card));}
+}
+function markCurrent(ev){
+  var act=(ev.active&&BYID[ev.active]&&BYID[ev.active].sec===ev.view)?ev.active:null;
+  var first=null,target=null;
+  $$('.card').forEach(function(card){
+    var id=card.getAttribute('data-id');
+    card.classList.remove('current');
+    if(id===act){target=card;}
+    if(!first&&!itemDone(ev,id)){first=card;}
+  });
+  var c=target||first;
+  if(c){c.classList.add('current');}
+}
+function refreshNav(ev){
+  var v=ev.view,i=ORDER.indexOf(v),prev=$('#btnPrev'),nx=$('#btnNext');
+  prev.hidden=(i<=0);
+  prev.textContent=(v==='resumo')?'Revisar os subitens':'Anterior';
+  var mode='',label='';
+  if(v==='dados'){mode='go';label='Iniciar avaliação';}
+  else if(typeof v==='number'){
+    var id=ev.active;
+    if(id&&BYID[id]&&BYID[id].sec===v&&ev.ratings[id]){
+      if(ev.step!=='next'){mode='obs';label='+ Observação';}
+      else if(isLast(id)){mode='section';label=(v===SECTIONS.length)?'Ver resumo':'Próxima seção';}
+      else{mode='item';label='Próximo subitem';}
+    }
+  }
+  nx.hidden=!mode;
+  nx.setAttribute('data-mode',mode);
+  nx.textContent=label;
+  if(typeof v==='number'){markCurrent(ev);}
+}
+function stepperHTML(ev,c){
+  var v=ev.view;
+  var out=ORDER.map(function(k){
+    var cur=(k===v),cls='step',sub='&nbsp;',label,txt='';
+    if(k==='dados'){cls+=' txt';txt='Dados';sub=ev.aluno?'&#10003;':'&nbsp;';label='Dados da avaliação';}
+    else if(k==='resumo'){cls+=' txt';txt='Final';sub=fp(c.got);label='Resumo e nota final';}
+    else{
+      var s=c.secs[k-1];txt=String(k);sub=s.n+'/'+s.total;
+      label=SECTIONS[k-1].title+', '+s.n+' de '+s.total+' subitens avaliados';
+      if(sectionDone(ev,k)){cls+=' done';}
+    }
+    return '<button type="button" class="'+cls+'" data-view="'+k+'" aria-label="'+esc(label)+'"'+(cur?' aria-current="step"':'')+'><b>'+txt+'</b><small>'+sub+'</small></button>';
+  }).join('');
+  return out;
+}
+function refreshStatus(c){
+  var el=$('#statusLine');if(!el)return;
+  var ev=cur();c=c||calc(ev);
+  var t='Subitens avaliados: '+c.n+' de '+c.total+'.';
+  if(!storageOk){
+    el.className='status warn no-print';
+    el.textContent=t+' Este navegador não permite salvar automaticamente. Baixe o PDF ou o CSV antes de fechar a página.';
+  }else{
+    el.className='status no-print';
+    el.textContent=t+(savedAt?' Salvo neste aparelho às '+p2(savedAt.getHours())+':'+p2(savedAt.getMinutes())+'.':'');
+  }
+}
+function refreshChrome(){
+  var ev=cur(),c=calc(ev),v=ev.view;
+  $('#topFinal').textContent=fp(c.got);
+  $('#topFinal4').textContent=f4(c.got4);
+  var ss=$('#secStat');
+  if(typeof v==='number'){
+    ss.hidden=false;
+    $('#topSec').textContent=fp(c.secs[v-1].got);
+    $('#topSecMax').textContent='/ '+fmt(c.secs[v-1].max);
+    var sc=$('#secScore');if(sc)sc.textContent=fp(c.secs[v-1].got);
+  }else{ss.hidden=true;}
+  $('#progFill').style.width=(c.n/c.total*100)+'%';
+  $('#progBar').setAttribute('aria-valuenow',String(c.n));
+  var st=$('#stepper');if(st)st.innerHTML=stepperHTML(ev,c);
+  refreshStatus(c);
+  refreshNav(ev);
+}
+function growTA(t){t.style.height='auto';t.style.height=Math.max(88,t.scrollHeight+4)+'px';}
+
+/* Navegação */
+function show(v,keepScroll){
+  var ev=cur();ev.view=v;editing={};
+  var m=$('#main');
+  m.className=(typeof v==='number')?'sec':'';
+  if(v==='dados'){m.innerHTML=tplDados(ev);}
+  else if(v==='resumo'){m.innerHTML=tplResumo(ev);}
+  else{
+    m.innerHTML=tplSecao(v,ev);
+    $$('.card',m).forEach(function(card){updateCard(card,ev);});
+    $$('textarea[data-obs]',m).forEach(function(t){if(!t.closest('.obs').hidden)growTA(t);});
+  }
+  refreshChrome();
+  if(!keepScroll){window.scrollTo(0,0);var h=$('#viewTitle');if(h){try{h.focus({preventScroll:true});}catch(e){}}}
+  queueSave(false);
+}
+function go(delta){
+  var ev=cur(),i=ORDER.indexOf(ev.view)+delta;
+  if(i>=0&&i<ORDER.length){show(ORDER[i]);}
+}
+function parseView(x){return /^\d+$/.test(x)?Number(x):x;}
+function jumpTo(id){
+  show(BYID[id].sec);
+  var card=$('.card[data-id="'+id+'"]');
+  if(card){card.scrollIntoView({block:'center'});card.classList.add('flash');}
+}
+
+/* Ações de avaliação */
+function rate(id,lv){
+  var ev=cur();
+  if(ev.ratings[id]===lv){
+    delete ev.ratings[id];delete ev.done[id];delete ev.opened[id];delete editing[id];
+    if(ev.active===id){ev.active=null;ev.step=null;}
+  }else{
+    var was=ev.ratings[id];
+    ev.ratings[id]=lv;
+    delete ev.done[id];
+    ev.opened[id]=true;
+    if(!(ev.active===id&&ev.step==='next'&&was)){ev.step='obs';}
+    ev.active=id;
+  }
+  var card=$('.card[data-id="'+id+'"]');
+  if(card){
+    updateCard(card,ev);
+    var ob=$('.obs',card);
+    if(!ob.hidden){try{ob.scrollIntoView({block:'nearest',behavior:'smooth'});}catch(e){}}
+  }
+  refreshChrome();
+  queueSave(true);
+}
+function activate(id,step){
+  var ev=cur();
+  if(ev.active===id&&ev.step===step){return;}
+  ev.active=id;ev.step=step;
+  refreshChrome();
+  queueSave(false);
+}
+function enterBox(id){
+  var ev=cur(),card=$('.card[data-id="'+id+'"]');
+  if(!card){return;}
+  ev.opened[id]=true;editing[id]=true;
+  ev.active=id;ev.step='next';
+  updateCard(card,ev);
+  refreshChrome();
+  queueSave(true);
+  var ta=$('textarea',card);
+  try{ta.focus();}catch(e){}
+}
+function scrollToCard(card){
+  var off=$('#topbar').offsetHeight+10;
+  var top=Math.max(0,card.getBoundingClientRect().top+window.pageYOffset-off);
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  try{window.scrollTo({top:top,behavior:reduce?'auto':'smooth'});}
+  catch(e){window.scrollTo(0,top);}
+}
+function advance(){
+  var ev=cur(),id=ev.active;
+  if(!id||!ev.ratings[id]){return;}
+  ev.done[id]=true;delete editing[id];
+  var card=$('.card[data-id="'+id+'"]');
+  ev.active=null;ev.step=null;
+  if(isLast(id)){queueSave(true);go(1);return;}
+  var nx=card?card.nextElementSibling:null;
+  while(nx&&!nx.classList.contains('card')){nx=nx.nextElementSibling;}
+  if(nx){
+    var nid=nx.getAttribute('data-id');
+    if(ev.ratings[nid]&&!ev.done[nid]){ev.active=nid;ev.step='obs';}
+  }
+  if(card){updateCard(card,ev);}
+  refreshChrome();
+  queueSave(true);
+  if(nx){scrollToCard(nx);}
+}
+function resetCurrent(){
+  var ev=cur();
+  if(!window.confirm('Reiniciar esta avaliação?\n\nTodas as notas e observações deste(a) aluno(a) serão apagadas. Disciplina, aluno(a), professor(a) e data continuam preenchidos.')){return;}
+  ev.ratings={};ev.obs={};ev.done={};ev.opened={};ev.active=null;ev.step=null;editing={};
+  ev.updated=Date.now();
+  closePanel();saveNow();show(1);
+  toast('Avaliação reiniciada.');
+}
+function clearAll(){
+  if(!window.confirm('Apagar TODAS as avaliações guardadas neste aparelho?\n\nAs avaliações de todos(as) os(as) alunos(as) serão removidas. Se quiser guardá-las, baixe antes o PDF, a planilha ou a cópia de segurança.')){return;}
+  if(!window.confirm('Confirma a exclusão de todas as avaliações? Esta ação não pode ser desfeita.')){return;}
+  store={current:null,items:{}};editing={};
+  newEval(null);
+  closePanel();saveNow();show('dados');
+  toast('Todas as avaliações foram apagadas.');
+}
+
+/* Exportações */
+function download(name,mime,text){downloadBlob(name,new Blob([text],{type:mime}));}
+function downloadBlob(name,blob){
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;a.download=name;a.style.display='none';
+  document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);a.remove();},1500);
+}
+function csvCell(v){
+  v=String(v==null?'':v);
+  if(/^[=+\-@\t\r]/.test(v)){v="'"+v;}
+  return '"'+v.replace(/"/g,'""')+'"';
+}
+function buildCSV(list){
+  var head=['Disciplina','Aluno(a)','Professor(a)','Data'];
+  SECTIONS.forEach(function(s){head.push('Nota '+s.n+'. '+s.title+' (máx. '+fmt(s.max)+')');});
+  head.push('Nota total (máx. 10,00)','Nota final (máx. 4,00)','Subitens avaliados');
+  ALL.forEach(function(i){head.push('Subitem '+i.id+' (valor '+fmt(i.v)+')');});
+  head.push('Observações');
+  var lines=[head.map(csvCell).join(';')];
+  list.forEach(function(ev){
+    var c=calc(ev);
+    var row=[ev.disciplina,ev.aluno,ev.professor,brDate(ev.data)];
+    c.secs.forEach(function(s){row.push(fp(s.got));});
+    row.push(fp(c.got),f4(c.got4),c.n+'/'+c.total);
+    ALL.forEach(function(i){var r=ev.ratings[i.id];row.push(r?LV[r].label:'');});
+    row.push(ALL.filter(function(i){return ev.obs[i.id];}).map(function(i){return i.id+': '+ev.obs[i.id].replace(/\s*\n\s*/g,' ');}).join(' | '));
+    lines.push(row.map(csvCell).join(';'));
+  });
+  return '﻿'+lines.join('\r\n');
+}
+function doPrint(){
+  var old=document.title;
+  document.title=baseName(cur());
+  try{window.print();}catch(e){}
+  setTimeout(function(){document.title=old;},1500);
+}
+
+/* Gerador de PDF (texto, fontes padrão Helvetica, sem bibliotecas) */
+var HW=[278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,
+ 556,556,556,556,556,556,556,556,556,556,
+ 278,278,584,584,584,556,1015,
+ 667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,
+ 278,278,278,469,556,333,
+ 556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,
+ 334,260,334,584];
+var HB=[278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,
+ 556,556,556,556,556,556,556,556,556,556,
+ 333,333,584,584,584,611,975,
+ 722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,
+ 333,278,333,584,556,333,
+ 556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,
+ 389,280,389,584];
+function pdfSafe(s){
+  s=String(s==null?'':s).normalize('NFC')
+    .replace(/≥/g,'>=').replace(/≤/g,'<=').replace(/[–—]/g,'-')
+    .replace(/[‘’]/g,"'").replace(/[“”]/g,'"').replace(/…/g,'...')
+    .replace(/ /g,' ').replace(/\r/g,'').replace(/[\t\v\f]/g,' ');
+  var o='';
+  for(var i=0;i<s.length;i++){
+    var k=s.charCodeAt(i);
+    o+=(k===10||(k>=32&&k<127)||(k>=160&&k<256))?s.charAt(i):'?';
+  }
+  return o;
+}
+function pdfEsc(s){return s.replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');}
+function chW(ch,bold){
+  var k=ch.charCodeAt(0),t=bold?HB:HW;
+  if(k>=32&&k<=126){return t[k-32];}
+  var b=ch.normalize('NFD').charAt(0),kb=b.charCodeAt(0);
+  return (kb>=32&&kb<=126)?t[kb-32]:556;
+}
+function tw(s,size,bold){
+  var w=0;for(var i=0;i<s.length;i++){w+=chW(s.charAt(i),bold);}
+  return w*size/1000*1.01;
+}
+function pdfWrap(s,maxW,size,bold){
+  var out=[];
+  s.split('\n').forEach(function(par){
+    if(!par.trim()){out.push('');return;}
+    var line='';
+    par.split(/ +/).forEach(function(w){
+      if(!w){return;}
+      var t=line?line+' '+w:w;
+      if(tw(t,size,bold)<=maxW){line=t;return;}
+      if(line){out.push(line);line='';}
+      while(tw(w,size,bold)>maxW){
+        var i=1;while(i<w.length&&tw(w.slice(0,i+1),size,bold)<=maxW){i++;}
+        out.push(w.slice(0,i));w=w.slice(i);
+      }
+      line=w;
+    });
+    out.push(line);
+  });
+  return out;
+}
+var PDF_COLORS={exc:'0.078 0.408 0.227',otimo:'0.247 0.478 0.078',muito:'0.420 0.455 0.063',bom:'0.580 0.384 0.039',reg:'0.706 0.314 0.043',insuf:'0.757 0.208 0.122',ausente:'0.561 0.071 0.224',none:'0.365 0.400 0.459'};
+function buildPDF(ev){
+  var c=calc(ev),W=595.28,H=841.89,M=42,CW=W-2*M,LIM=H-M-16;
+  var pages=[],ops,y;
+  function f(n){return n.toFixed(2);}
+  function newPage(){ops=[];pages.push(ops);y=M;}
+  function room(h){if(y+h>LIM){newPage();}}
+  function txt(s,x,base,size,bold,fill){ops.push('BT /'+(bold?'F2':'F1')+' '+size+' Tf '+(fill||'0 g')+' 1 0 0 1 '+f(x)+' '+f(H-base)+' Tm ('+pdfEsc(s)+') Tj ET');}
+  function rectF(x,top,w,h,fill){ops.push(fill+' '+f(x)+' '+f(H-top-h)+' '+f(w)+' '+f(h)+' re f');}
+  function rectS(x,top,w,h,lw,g){ops.push(lw+' w '+g+' G '+f(x)+' '+f(H-top-h)+' '+f(w)+' '+f(h)+' re S');}
+  function hline(x1,x2,top,lw,g){ops.push(lw+' w '+g+' G '+f(x1)+' '+f(H-top)+' m '+f(x2)+' '+f(H-top)+' l S');}
+  function line(s,x,size,bold,fill){var lh=size*1.38;room(lh);txt(s,x,y+size,size,bold,fill);y+=lh;}
+
+  newPage();
+  pdfWrap(pdfSafe(TITLE),CW,16,true).forEach(function(l){line(l,M,16,true);});y+=6;
+  [['Disciplina',ev.disciplina||'(não informada)'],['Aluno(a)',ev.aluno||'(não informado)'],['Professor(a)',ev.professor||'(não informado)'],['Data',brDate(ev.data)||'(não informada)']].forEach(function(p){
+    var ls=pdfWrap(pdfSafe(p[1]),CW-78,10.5,false);
+    ls.forEach(function(l,i){
+      var lh=10.5*1.4;room(lh);
+      if(i===0){txt(pdfSafe(p[0]),M,y+10.5,10.5,true);}
+      txt(l,M+78,y+10.5,10.5,false);y+=lh;
+    });
+  });
+  y+=10;
+  room(84);
+  rectS(M,y,CW,66,1.2,'0');
+  txt('Nota total',M+12,y+25,11,true);
+  var sc=fp(c.got);
+  txt(sc,M+84,y+27,24,true);
+  txt(pdfSafe('de 10,00 ('+c.n+' de '+c.total+' subitens avaliados)'),M+84+tw(sc,24,true)+10,y+26,10.5,false);
+  hline(M+12,M+CW-12,y+35,0.5,'0.6');
+  txt('Nota final',M+12,y+55,11,true);
+  var sf=f4(c.got4);
+  txt(sf,M+84,y+57,18,true);
+  txt(pdfSafe('de 4,00 (nota total x 4 / 10)'),M+84+tw(sf,18,true)+10,y+55,10.5,false);
+  y+=82;
+
+  /* tabela de seções */
+  var RH=20,c2=CW-170,c3=85;
+  room(RH*(SECTIONS.length+3)+10);
+  function trow(a,b,d,bold,fill){
+    if(fill){rectF(M,y,CW,RH,fill);}
+    rectS(M,y,CW,RH,0.6,'0.45');
+    ops.push('0.6 w 0.45 G '+f(M+c2)+' '+f(H-y)+' m '+f(M+c2)+' '+f(H-y-RH)+' l S');
+    ops.push('0.6 w 0.45 G '+f(M+c2+c3)+' '+f(H-y)+' m '+f(M+c2+c3)+' '+f(H-y-RH)+' l S');
+    txt(pdfSafe(a),M+8,y+14,10,bold);
+    txt(b,M+c2+c3-8-tw(b,10,bold),y+14,10,bold);
+    txt(d,M+CW-8-tw(d,10,bold),y+14,10,bold);
+    y+=RH;
+  }
+  trow('Seção','Nota','Valor',true,'0.92 g');
+  SECTIONS.forEach(function(s,ix){trow(s.n+'. '+s.title,fp(c.secs[ix].got),fmt(s.max),false);});
+  trow('Nota total',fp(c.got),fmt(c.max),true,'0.92 g');
+  trow('Nota final (nota total x 4 / 10)',f4(c.got4),'4,00',true,'0.92 g');
+  y+=8;
+
+  /* detalhe por item */
+  var CODEW=26,LH=10*1.38,OLH=9.5*1.38,USABLE=LIM-M;
+  function itemH(it){
+    var o=ev.obs[it.id];
+    var n1=pdfWrap(pdfSafe(it.title),CW-CODEW,10,true).length,n2=pdfWrap(pdfSafe(it.desc),CW-CODEW,9.5,false).length;
+    var n3=o?pdfWrap(pdfSafe(o),CW-CODEW,9.5,false).length:0;
+    return Math.min(USABLE,n1*LH+n2*OLH+3+18+(o?(1+n3)*OLH+2:0)+10);
+  }
+  SECTIONS.forEach(function(s,ix){
+    room(26+itemH(s.items[0]));
+    var base=y+12;
+    txt(pdfSafe(s.n+'. '+s.title),M,base,12,true);
+    var rt=pdfSafe('Nota '+fp(c.secs[ix].got)+' de '+fmt(s.max));
+    txt(rt,W-M-tw(rt,10,false),base,10,false);
+    y+=17;hline(M,W-M,y,1,'0');y+=9;
+    s.items.forEach(function(it){
+      var r=ev.ratings[it.id],o=ev.obs[it.id];
+      var tl=pdfWrap(pdfSafe(it.title),CW-CODEW,10,true);
+      var dl=pdfWrap(pdfSafe(it.desc),CW-CODEW,9.5,false);
+      var os=o?pdfWrap(pdfSafe(o),CW-CODEW,9.5,false):[];
+      var hb=tl.length*LH+dl.length*OLH+3+18+(o?(1+os.length)*OLH+2:0)+10;
+      if(hb<=USABLE){room(hb);}
+      var top=y;
+      tl.forEach(function(l,i){
+        room(LH);
+        if(i===0){txt(it.id,M,y+10,10,true);}
+        txt(l,M+CODEW,y+10,10,true);y+=LH;
+      });
+      dl.forEach(function(l){line(l,M+CODEW,9.5,false,'0.25 g');});
+      y+=3;room(18);
+      var lab=r?LV[r].label+' ('+LV[r].pct+'%)':'Sem avaliação';
+      var cw=tw(pdfSafe(lab),9,true)+12;
+      rectF(M+CODEW,y+1,cw,14,PDF_COLORS[r||'none']+' rg');
+      txt(pdfSafe(lab),M+CODEW+6,y+11.5,9,true,'1 g');
+      var got=r?fp(pts(it,r)):'0,00';
+      txt(got,M+CODEW+cw+10,y+11.5,10,true);
+      txt(pdfSafe(' de '+fmt(it.v)),M+CODEW+cw+10+tw(got,10,true),y+11.5,10,false);
+      y+=18;
+      if(o){
+        line('Observação:',M+CODEW,9.5,true);
+        os.forEach(function(l){line(l,M+CODEW,9.5,false);});
+        y+=2;
+      }
+      hline(M,W-M,y+2,0.4,'0.8');
+      y+=10;
+    });
+    y+=4;
+  });
+
+  /* rodapé e montagem */
+  var n=pages.length;
+  pages.forEach(function(p,i){
+    ops=p;
+    txt(pdfSafe('Diário de Campo Individual (Intervenção)'+(ev.aluno?' | '+ev.aluno:'')),M,H-26,8,false,'0.4 g');
+    var pg='Página '+(i+1)+' de '+n;
+    txt(pdfSafe(pg),W-M-tw(pg,8,false),H-26,8,false,'0.4 g');
+  });
+  var objs=[];
+  objs[1]='<< /Type /Catalog /Pages 2 0 R >>';
+  var kids=[];
+  for(var i=0;i<n;i++){kids.push((6+2*i)+' 0 R');}
+  objs[2]='<< /Type /Pages /Kids ['+kids.join(' ')+'] /Count '+n+' >>';
+  objs[3]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>';
+  objs[4]='<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
+  pages.forEach(function(p,i){
+    var s=p.join('\n');
+    objs[5+2*i]='<< /Length '+s.length+' >>\nstream\n'+s+'\nendstream';
+    objs[6+2*i]='<< /Type /Page /Parent 2 0 R /MediaBox [0 0 '+f(W)+' '+f(H)+'] /Contents '+(5+2*i)+' 0 R /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> >>';
+  });
+  var out='%PDF-1.4\n',offs=[];
+  for(var k=1;k<objs.length;k++){offs[k]=out.length;out+=k+' 0 obj\n'+objs[k]+'\nendobj\n';}
+  var xr=out.length;
+  out+='xref\n0 '+objs.length+'\n0000000000 65535 f \n';
+  for(var q=1;q<objs.length;q++){out+=('0000000000'+offs[q]).slice(-10)+' 00000 n \n';}
+  out+='trailer\n<< /Size '+objs.length+' /Root 1 0 R >>\nstartxref\n'+xr+'\n%%EOF';
+  var arr=new Uint8Array(out.length);
+  for(var z=0;z<out.length;z++){arr[z]=out.charCodeAt(z)&255;}
+  return new Blob([arr],{type:'application/pdf'});
+}
+function exportPDF(){
+  var ev=cur();
+  try{downloadBlob(baseName(ev)+'.pdf',buildPDF(ev));toast('PDF gerado. Procure na pasta Downloads. Se não aparecer, use "Abrir PDF em nova aba".');}
+  catch(e){toast('Não foi possível gerar o PDF neste navegador.');}
+}
+function canShareFiles(){
+  try{
+    if(!navigator.share||!navigator.canShare||typeof File==='undefined'){return false;}
+    var mobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.maxTouchPoints>1&&/Macintosh/.test(navigator.userAgent));
+    if(!mobile){return false;}
+    return navigator.canShare({files:[new File(['x'],'t.pdf',{type:'application/pdf'})]});
+  }catch(e){return false;}
+}
+function sharePDF(){
+  var ev=cur();
+  try{
+    var file=new File([buildPDF(ev)],baseName(ev)+'.pdf',{type:'application/pdf'});
+    navigator.share({files:[file],title:TITLE}).catch(function(e){
+      if(!e||e.name!=='AbortError'){toast('O compartilhamento falhou. Use "Abrir PDF em nova aba".');}
+    });
+  }catch(e){toast('O compartilhamento falhou. Use "Abrir PDF em nova aba".');}
+}
+function openPDF(){
+  var url=URL.createObjectURL(buildPDF(cur())),w=null;
+  try{w=window.open(url,'_blank');}catch(e){w=null;}
+  if(!w){toast('O navegador bloqueou a nova aba. Tente "Baixar PDF".');}
+  setTimeout(function(){URL.revokeObjectURL(url);},180000);
+}
+function exportCSV(list,name){download(name+'.csv','text/csv;charset=utf-8',buildCSV(list));toast('Planilha baixada.');}
+function exportJSON(obj,name){download(name+'.json','application/json',JSON.stringify(obj,null,2));toast('Arquivo de dados baixado.');}
+function cleanEval(x){
+  if(!x||typeof x!=='object'||typeof x.ratings!=='object')return null;
+  var ev={id:String(x.id||('i'+Date.now().toString(36)+Math.random().toString(36).slice(2,6))),
+    disciplina:String(x.disciplina||''),professor:String(x.professor||''),aluno:String(x.aluno||''),
+    data:/^\d{4}-\d{2}-\d{2}$/.test(x.data||'')?x.data:todayISO(),ratings:{},obs:{},done:{},opened:{},active:null,step:null,view:'dados',
+    created:Number(x.created)||Date.now(),updated:Number(x.updated)||Date.now()};
+  Object.keys(x.ratings||{}).forEach(function(k){if(BYID[k]&&LV[x.ratings[k]]){ev.ratings[k]=x.ratings[k];}});
+  Object.keys(x.obs||{}).forEach(function(k){if(BYID[k]&&typeof x.obs[k]==='string'&&x.obs[k].trim()){ev.obs[k]=x.obs[k];}});
+  if(x.done&&typeof x.done==='object'){
+    Object.keys(x.done).forEach(function(k){if(BYID[k]&&x.done[k]&&ev.ratings[k]){ev.done[k]=true;}});
+    Object.keys(x.opened||{}).forEach(function(k){if(BYID[k]&&x.opened[k]){ev.opened[k]=true;}});
+  }else{
+    Object.keys(ev.ratings).forEach(function(k){ev.done[k]=true;});
+  }
+  return ev;
+}
+function importText(text){
+  var data;
+  try{data=JSON.parse(text);}catch(e){toast('Arquivo inválido.');return;}
+  if(!data||Array.isArray(data)||data.app!==APP){toast('Este arquivo não pertence a este formulário e não pode ser importado aqui.');return;}
+  var list=[];
+  if(Array.isArray(data)){list=data;}
+  else if(data&&Array.isArray(data.items)){list=data.items;}
+  else if(data&&data.evaluation){list=[data.evaluation];}
+  else if(data&&data.ratings){list=[data];}
+  var added=0,kept=0;
+  list.forEach(function(x){
+    var ev=cleanEval(x);if(!ev)return;
+    var old=store.items[ev.id];
+    if(old&&(old.updated||0)>=ev.updated){kept++;return;}
+    if(old){ev.view=old.view;}
+    store.items[ev.id]=ev;added++;
+  });
+  saveNow();
+  if(!added&&!kept){toast('Nenhuma avaliação encontrada no arquivo.');return;}
+  toast(added+' importada(s)'+(kept?', '+kept+' já estava(m) atualizada(s)':'')+'.');
+  renderPanel();
+}
+
+/* Painel de avaliações salvas */
+function openPanel(){renderPanel();$('#overlay').hidden=false;document.body.style.overflow='hidden';var b=$('#panelClose');if(b)b.focus();}
+function closePanel(){$('#overlay').hidden=true;document.body.style.overflow='';}
+function renderPanel(){
+  var list=Object.keys(store.items).map(function(k){return store.items[k];}).sort(function(a,b){return (b.updated||0)-(a.updated||0);});
+  var html='<div class="panel-head"><h2 id="panelTitle">Avaliações salvas</h2><button type="button" class="btn" id="panelClose">Fechar</button></div>'+
+    '<button type="button" class="btn primary" style="width:100%;margin-bottom:12px" data-p="new">Nova avaliação</button>';
+  if(!storageOk){html+='<p class="status warn">Este navegador não permite salvar automaticamente. As avaliações ficam apenas nesta página aberta.</p>';}
+  html+=list.map(function(ev){
+    var c=calc(ev);
+    var t=(ev.aluno||'Aluno(a) sem nome');
+    return '<div class="saved'+(ev.id===store.current?' current':'')+'"><h3>'+esc(t)+'</h3><p>'+esc(ev.disciplina||'Disciplina não informada')+' | '+esc(brDate(ev.data))+'<br>Nota total '+fp(c.got)+' de 10,00 | final '+f4(c.got4)+' de 4,00<br>'+c.n+' de '+c.total+' subitens avaliados</p>'+
+      '<div class="row"><button type="button" class="btn" data-p="open" data-id="'+esc(ev.id)+'">'+(ev.id===store.current?'Voltar a esta':'Abrir')+'</button><button type="button" class="btn danger" data-p="del" data-id="'+esc(ev.id)+'">Excluir</button></div></div>';
+  }).join('');
+  html+='<div class="panel-tools"><button type="button" class="btn" data-p="csvall">Baixar todas em planilha (CSV)</button>'+
+    '<button type="button" class="btn" data-p="backup">Baixar cópia de segurança (.json)</button>'+
+    '<button type="button" class="btn" data-p="import">Importar arquivo (.json)</button>'+
+    '<button type="button" class="btn danger" data-p="reset" style="margin-top:12px">Reiniciar a avaliação atual</button>'+
+    '<button type="button" class="btn danger" data-p="clearall">Apagar todas as avaliações</button></div>';
+  $('#panel').innerHTML=html;
+}
+function startNew(){
+  var ev=cur();
+  if(ev&&isBlank(ev)){show('dados');return;}
+  newEval(ev);saveNow();show('dados');
+}
+function toast(msg){
+  var t=$('#toast');t.textContent=msg;t.hidden=false;
+  clearTimeout(toast.t);toast.t=setTimeout(function(){t.hidden=true;},5500);
+}
+
+/* Eventos */
+document.addEventListener('click',function(e){
+  var t=e.target;
+  var opt=t.closest('.opt');
+  if(opt){rate(opt.closest('.card').getAttribute('data-id'),opt.getAttribute('data-lv'));return;}
+  var tog=t.closest('.obs-toggle');
+  if(tog){enterBox(tog.closest('.card').getAttribute('data-id'));return;}
+  var st=t.closest('.step');
+  if(st){show(parseView(st.getAttribute('data-view')));return;}
+  var jp=t.closest('[data-jump]');
+  if(jp){jumpTo(jp.getAttribute('data-jump'));return;}
+  var act=t.closest('[data-act]');
+  if(act){
+    var ev=cur(),a=act.getAttribute('data-act');
+    if(a==='pdf'){exportPDF();}
+    else if(a==='share'){sharePDF();}
+    else if(a==='openpdf'){openPDF();}
+    else if(a==='csv'){exportCSV([ev],baseName(ev));}
+    else if(a==='json'){exportJSON({app:APP,version:1,evaluation:ev},baseName(ev));}
+    else if(a==='new'){startNew();var g=$('#f-aluno');if(g)g.focus();}
+    else if(a==='reset'){resetCurrent();}
+    return;
+  }
+  var p=t.closest('[data-p]');
+  if(p){
+    var k=p.getAttribute('data-p'),id=p.getAttribute('data-id');
+    if(k==='new'){closePanel();startNew();}
+    else if(k==='open'){store.current=id;saveNow();closePanel();show(store.items[id].view||'dados');}
+    else if(k==='del'){
+      var target=store.items[id];
+      if(target&&window.confirm('Excluir a avaliação "'+(target.aluno||'Aluno(a) sem nome')+'"? Esta ação não pode ser desfeita.')){
+        delete store.items[id];
+        if(store.current===id){
+          var rest=Object.keys(store.items);
+          if(rest.length){store.current=rest[0];}else{newEval(null);}
+          saveNow();closePanel();show(cur().view||'dados');return;
+        }
+        saveNow();renderPanel();
+      }
+    }
+    else if(k==='csvall'){var all=Object.keys(store.items).map(function(x){return store.items[x];});exportCSV(all,'Diario-de-Campo_todas_'+todayISO());}
+    else if(k==='backup'){var all2=Object.keys(store.items).map(function(x){return store.items[x];});exportJSON({app:APP,version:1,items:all2},'Diario-de-Campo_copia_'+todayISO());}
+    else if(k==='import'){$('#fileIn').click();}
+    else if(k==='reset'){resetCurrent();}
+    else if(k==='clearall'){clearAll();}
+    return;
+  }
+  if(t.closest('#panelClose')){closePanel();return;}
+  if(t===$('#overlay')){closePanel();}
+});
+document.addEventListener('input',function(e){
+  var t=e.target,ev=cur();
+  if(t.matches('textarea[data-obs]')){
+    var id=t.getAttribute('data-obs');
+    if(t.value.trim()){ev.obs[id]=t.value;}else{delete ev.obs[id];}
+    growTA(t);queueSave(true);
+  }else if(t.matches('[data-f]')){
+    ev[t.getAttribute('data-f')]=t.value;
+    var st=$('#stepper');if(st)st.innerHTML=stepperHTML(ev,calc(ev));
+    queueSave(true);
+  }
+});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'&&!$('#overlay').hidden){closePanel();}});
+$('#btnMenu').addEventListener('click',openPanel);
+$('#btnPrev').addEventListener('click',function(){go(-1);});
+$('#btnNext').addEventListener('click',function(){
+  var m=this.getAttribute('data-mode'),ev=cur();
+  if(m==='go'){go(1);}
+  else if(m==='obs'){enterBox(ev.active);}
+  else if(m==='item'||m==='section'){advance();}
+});
+document.addEventListener('focusin',function(e){
+  var t=e.target;
+  if(t.matches&&t.matches('textarea[data-obs]')){
+    var id=t.getAttribute('data-obs');
+    if(cur().ratings[id]){activate(id,'next');}
+  }
+});
+if(window.visualViewport){
+  var vv=window.visualViewport,bn=$('#bottomnav');
+  var fitBar=function(){
+    var off=window.innerHeight-vv.height-vv.offsetTop;
+    bn.style.transform=(vv.scale<=1.01&&off>1)?'translateY('+(-off)+'px)':'';
+  };
+  vv.addEventListener('resize',fitBar);vv.addEventListener('scroll',fitBar);
+}
+$('#fileIn').addEventListener('change',function(){
+  var f=this.files&&this.files[0];if(!f)return;
+  var rd=new FileReader();
+  rd.onload=function(){importText(String(rd.result));};
+  rd.readAsText(f);this.value='';
+});
+window.addEventListener('pagehide',saveNow);
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden'){saveNow();}});
+
+/* Início */
+loadStore();
+if(!store.current||!store.items[store.current]){
+  var ids=Object.keys(store.items);
+  if(ids.length){store.current=ids.sort(function(a,b){return (store.items[b].updated||0)-(store.items[a].updated||0);})[0];}
+  else{newEval(null);}
+}
+var first=cur();
+if(ORDER.indexOf(first.view)<0){first.view='dados';}
+show(first.view,true);
+if(storageOk){saveNow();}
+})();
+</script>
+</body>
+</html>
